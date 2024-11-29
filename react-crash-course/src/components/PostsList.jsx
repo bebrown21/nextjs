@@ -1,35 +1,37 @@
 import classes from "./Post.module.css";
 import Post from "./Post";
 import NewPost from "./NewPost";
-import { useState } from "react";
 import Modal from "./Modal";
+import { useState } from "react";
 
 function PostsList({ isPosting, onStopPosting }) {
-  const [enteredBody, setEnteredBody] = useState("");
-  const [enteredAuthor, setEnteredAuthor] = useState("");
+  const [posts, setPosts] = useState([]);
 
-  function bodyChangeHandler(event) {
-    setEnteredBody(event.target.value);
-  }
-
-  function authorChangeHandler(event) {
-    setEnteredAuthor(event.target.value);
+  function addPostHandler(postData) {
+    fetch("http://localhost:8080/posts", {
+      method: "POST",
+      body: JSON.stringify(postData),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    setPosts((prevPosts) => {
+      return [postData, ...prevPosts];
+    });
   }
 
   return (
     <>
       {isPosting && (
         <Modal onClose={onStopPosting}>
-          <NewPost
-            onBodyChange={bodyChangeHandler}
-            onAuthorChange={authorChangeHandler}
-          />
+          <NewPost onCancel={onStopPosting} onAddPost={addPostHandler} />
         </Modal>
       )}
 
       <ul className={classes.posts}>
-        <Post author={enteredAuthor} body={enteredBody} />
-        <Post author="Dude" body="This is lame" />
+        {posts.map((post) => (
+          <Post key={post.body} author={post.author} body={post.body} />
+        ))}
       </ul>
     </>
   );
